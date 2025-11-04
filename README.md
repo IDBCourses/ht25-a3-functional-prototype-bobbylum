@@ -1,8 +1,8 @@
-[![Link to personal repository](https://github.com/IDBCourses/ht25-a3-functional-prototype-bobbylum)]
+[Link to personal repository](https://github.com/IDBCourses/ht25-a3-functional-prototype-bobbylum)
 
 ## Forest Buddy's Trinkets:
 
-This is a small game in which you, a little guy in a red cloak, come accross Forest Buddy. Unable to reach his trinkets himself, he tasks you with sliding the trinkets over to him. He might also ask you for a sip of potion as well!
+This is a small game in which you, a little guy in a red cloak, come accross Forest Buddy. Unable to reach his trinkets himself, he tasks you with sliding the trinkets over to him. He might also ask you for a sip of potion!
 
 
 ## Game description:
