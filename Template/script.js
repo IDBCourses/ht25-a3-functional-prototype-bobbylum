@@ -229,33 +229,33 @@ function startGame() {
     // Reset all trinkets to starting positions
     for (let i = 0; i < trinketEls.length; i++) resetTrinket(trinketEls[i]);
     
-    pickChosenTrinket(); // choose first trinket to request
-    startTimer(); // start countdown timer
+    pickChosenTrinket(); // choose the first trinket to be requested
+    startTimer(); // start the countdown timer
     maybePotionRequest(); // start checking for potion requests
     maybeBiggyComment(); // start checking for random comments
 }
 
-// Updates the speech bubble to show an image
+// Updates the speech bubble to show the corresponding image
 function updateSpeechBubble(imagePath) {
-    speechBubble.innerHTML = ''; // clear current content
-    const img = document.createElement('img'); // create new image element
-    img.src = imagePath; // set image source
-    img.style.width = '48px'; // set width
+    speechBubble.innerHTML = ''; // clear current content of the speech bubble
+    const img = document.createElement('img'); // create a new image element
+    img.src = imagePath; // set the image source
+    img.style.width = '48px'; // set the width of the image inside the speech bubble
     img.style.height = 'auto'; // auto-set height to maintain original look of the image
-    speechBubble.appendChild(img); // add it to speech bubble
+    speechBubble.appendChild(img); // add the image to the speech bubble
 }
 
 // End of the game
 function endGame() {
-    gameStarted = false; // mark game as stopped
-    clearInterval(timerInterval); // stop countdown timer
-    clearInterval(potionInterval); // stop potion filling animation
-    clearTimeout(potionTimeout); // cancel potion deadline
-    potionActive = false; // deactivate potion request
-    potionFilling = false; // stop filling
-    alert(`Game over :( Your score: ${score}`); // show final score as a browser alert
-    startScreen.style.display = 'block'; // show start screen again
-    gameContainer.style.display = 'none'; // hide game container
+    gameStarted = false; // mark the game as stopped
+    clearInterval(timerInterval); // stop the countdown timer
+    clearInterval(potionInterval); // stop the potion filling animation
+    clearTimeout(potionTimeout); // cancel the potion time deadline
+    potionActive = false; // deactivate the potion request
+    potionFilling = false; // stop potion filling
+    alert(`Game over :( Your score: ${score}`); // show the final score as a browser alert
+    startScreen.style.display = 'block'; // show the start screen again
+    gameContainer.style.display = 'none'; // hide the game container
 }
 
 // ----- EVENT LISTENERS -----
