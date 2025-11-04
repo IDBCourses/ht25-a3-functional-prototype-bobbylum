@@ -1,28 +1,179 @@
-.thing {
-    width: 100px;
-    height: 100px;
-    background-color: deeppink;
-    position: absolute;
-    border-radius: 50%;
+body {
+    font-family: 'Caprasimo', cursive;
+    min-height: 100vh;/* Set minimum height to full viewport height */
+    background: #9f004b;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+
 }
 
-/* Prevent padding and border from affecting element width. */
-*,
-::before,
-::after {
+/* START SCREEN */
+.startBox {
+    display: block;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    inset: 0;
+    margin: 0;
+    z-index: 200;
+    background: rgba(0, 0, 0, 0.25);
     box-sizing: border-box;
 }
 
-/* Remove the margin in all browsers */
-body {
-    margin: 0;
-    padding: 0;
-    line-height: inherit;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+/*styling for the image in the starting box*/
+.start-box img,
+#start-screen img {
+    max-width: 90vw;
+    max-height: 80vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: center;
 }
 
-#sample-output {
-    position: fixed;
-    border-radius: 100%;
-    background-color: orange;
+
+/* Game container styling */
+#game-container.container {
+    display: none;/*hide before game starts*/
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: calc(100vh - 40px); /* fills the viewport minus margins */
+    background-image: url(Pics/image.png);
+    background-size: cover;
+    background-position: bottom;
+    background-repeat: no-repeat;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+/* Score and timer */
+#score-timer {
+    display: flex;
+    justify-content: space-between; /*puts score and timer at oposite ends*/
+    width: 90%;
+    margin-bottom: 10px;
+    font-size: 24px;
+    color: beige;
+    z-index: 100;
+}
+
+/* guys + speech bubble */
+#guys {
+    width: 600px;
+    height: 500px;
+    position: absolute;
+    /* center the whole guys container in the game area */
+    left: 50%; 
+    transform: translateX(-50%);
+    bottom: 0;
+    z-index: 10;
+    box-sizing: border-box;
+
+
+}
+
+#speech-bubble {
+    position: absolute;
+    right: 92px; /* align horizontally with bigger guy */
+    bottom: 350px; /* place above bigger guy's head */
+    transform: none;
+    font-size: 28px;
+    max-width: 260px;
+    background: beige;
+    border: 2px solid pink;
+    border-radius: 14px;
+    padding: 12px 16px;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+    z-index: 50;
+    white-space: nowrap;
+    text-align: center;
+}
+
+
+/*styling for little red guy*/
+#lil-guy {
+
+    position: absolute;
+    left: 25%;
+    transform: translateX(-50%);
+    bottom: 12px;
+    width: 100px;
+    z-index: 6;
+
+}
+
+/*styling for Forest Buddy*/
+#bigger-guy {
+
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    width: 200px;
+    z-index: 6;
+
+}
+
+/* Potion bar styling */
+#potion-bar {
+    position: absolute;
+    bottom: 0px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 8px;
+    width: 300px;
+    background: #d894cf;
+    border-radius: 6px;
+    transition: width 0.1s linear;
+    z-index: 40;/*keeps the bar above the front layer*/
+}
+
+/* trinket elements */
+.consumable {
+    position: absolute;
+    left: 38.5%; /*position of the trinkets from the left side of the container*/
+    bottom: 40%;
+    font-size: 40px;
+    transition: left 0.12s linear, opacity 0.18s;
+    z-index: 60;
+
+}
+
+/*styling for the trinket images*/
+.consumable img {
+    width: 40px;
+    height: auto;
+    display: block;
+}
+
+/* per-item vertical placement inside of #guys */
+#trinket1 {
+    bottom: 150px;
+}
+
+#trinket2 {
+    bottom: 200px;
+
+}
+
+#trinket3 {
+    bottom: 250px;
+
+}
+
+#front-layer {
+    position: absolute;
+    inset: 0;/* top:0; right:0; bottom:0; left:0 */
+    pointer-events: none; /* allows clicks to go through to elements underneath */
+    background-image: url('Pics/front.png');
+    background-repeat: no-repeat;
+    background-position: bottom;
+    background-size: cover; /* matches the game-container background sizing */
+    z-index: 30;
 }
