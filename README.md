@@ -1,92 +1,21 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/2Ckaj58x)
-# CodePlayground
+[![Link to personal repository](https://github.com/IDBCourses/ht25-a3-functional-prototype-bobbylum)]
 
-Simple browser playground for animating a shape on the page using utilities from `Animations/util.js`.
+## Forest Buddy's Trinkets:
 
-The utilities assume there is an element with id `thing` in the DOM (see `Animations/index.html`). All functions accept an optional `element` parameter to target a different element; by default they operate on the exported `thing` element.
+This is a small game in which you, a little guy in a red cloak, come accross Forest Buddy. Unable to reach his trinkets himself, he tasks you with sliding the trinkets over to him. He might also ask you for a sip of potion as well!
 
-## Usage
 
-In a module script (e.g., `Animations/script.js`):
+## Game description:
 
-```js
-import { thing, setColour, setPosition, setSize, setRotation, setRoundedness } from "./util.js";
+This game works with the keyboard to slide the trinkets accross to Forest Buddy. There is an initial timer that indicates how long you have until the game ends, which grows as you give the correct trinkets to Forest Buddy. Your score will also increase as you pass Forest Buddy the trinket he wants. He will also ask for a sip of potion, which you will have to give him fully within 15 seconds. 
 
-// Center the shape, make it blue and round, then rotate it
-setPosition(0.5, 0.5);
-setSize(120);
-setColour(220, 80, 60, 1);
-setRoundedness(1);
-setRotation(45);
 
-// Target a different element explicitly
-const other = document.getElementById("other-thing");
-setColour(0, 100, 50, 0.8, other);
-```
+## Game rules:
 
-Notes
-- Coordinates are treated as fractions of the current viewport (`window.innerWidth/innerHeight`). Values are not clamped; numbers outside `[0,1]` can move the element off-screen.
-- Position and rotation are applied via CSS `left`/`top` and a `transform` combining `translate(...)` and `rotate(...)`.
-- If the target element is missing, functions still update internal state but skip DOM updates.
-
-## API (from `Animations/util.js`)
-
-### `thing: HTMLElement | null`
-The DOM element with id `thing`, or `null` if not found. Used as the default target for all functions.
-
-### `setColour(h, s = 100, l = 50, a = 1, element = thing): void`
-Sets `element.style.backgroundColor` using HSL with alpha and updates internal color state.
-- h: number (0–360) hue degrees
-- s: number (0–100) saturation percent
-- l: number (0–100) lightness percent
-- a: number (0–1) opacity (alpha)
-- element: HTMLElement to style; defaults to `thing`
-Example: `setColour(200, 80, 60, 0.8)`
-
-### `setPosition(x, y, element = thing): void`
-Sets the element’s position relative to the viewport and reapplies transform (translate + current rotation).
-- x: number; horizontal position as a fraction of `window.innerWidth`
-- y: number; vertical position as a fraction of `window.innerHeight`
-- element: HTMLElement to move; defaults to `thing`
-Effect: sets `style.left/top` in pixels and `style.transform` to `translate(x*vw, y*vh) rotate(rotation)
-
-### `setPositionPixels(px, py, element = thing): void`
-Set the element position using pixel coordinates measured from the top-left
-of the viewport.
-- px: number; x position in pixels
-- py: number; y position in pixels
-- element: HTMLElement to move; defaults to `thing`
-Effect: stores pixel coordinates and reapplies `style.transform` using
-`translate(px, py) rotate(rotation)`.`.
-
-### `setSize(size|width, height = null, element = thing): void`
-Set the element size. The function supports two main forms:
-
-- `setSize(size)` -> square: width = height = size (backwards compatible)
-- `setSize(width, height)` -> set width and height independently (both in px)
-
-To target a different element, pass it as the third argument: `setSize(size, null, element)` or `setSize(w, h, element)`.
-
-Note: internal state previously exposed as `state.size` is now split into `state.width` and `state.height` (both in pixels).
-
-### `setRotation(rotation, element = thing): void`
-Sets rotation in degrees and reapplies transform with current position.
-- rotation: number; degrees clockwise
-- element: HTMLElement to rotate; defaults to `thing`
-Effect: updates `style.transform` to include `rotate(rotation)` alongside `translate(...)`.
-
-### `setRoundedness(roundedness, element = thing): void`
-Controls corner radius as a percentage of the element’s size.
-- roundedness: number; typical range 0 (square) to 1 (circle)
-- element: HTMLElement to style; defaults to `thing`
-Effect: sets `style.borderRadius` to `${roundedness * 100}%`.
-
-### `createThing(id = null, className = "thing"): HTMLElement`
-Create and append a new `div` element to the document body. The created
-element will have the provided `className` and optional `id`. If the id is
-already present in the document a numeric suffix will be appended to keep it
-unique (e.g. `id-1`).
-- id: optional string id to assign
-- className: CSS class to add (defaults to `thing`)
-Returns: the newly created `HTMLElement`.
+This game is best played with your browser in fullscreen and with a QWERTY style keyboard.
+To start the game, press Shift + P. 
+Forest Buddy will ask for a trinket, which corresponds to one of the three trinkets above your little guy's head. Slide your finger accross one of the three rows of keys on your keyboard to the left to move the corresponding trinket towards Forest Buddy. The top row of letters on your keyboard corresponds to the top trinket, the middle row to the middle trinket, and the bottom row to the bottom trinket.
+When an item that was not requested by Forest Buddy is slid over to him, a little skull image with appear in his speech bubble and the score and timer will not grow. 
+Whenever he asks for a potion, indicated by the little potion vial in his speech bubble, press the spacebar to give him some potion until it is filled. You can then continue giving Forest Buddy his trinkets.
+When the game ends, either because you did not fill the potion bar within 15 seconds or your timer has run out, your browser will pop up an alert, telling you that the game is over and gives you your score. 
 
