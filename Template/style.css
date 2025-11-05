@@ -45,7 +45,7 @@ body {
     right: 0;
     width: 100%;
     height: calc(100vh - 40px); /* fills the viewport minus margins */
-    background-image: url(Pics/image.png);
+    background-image: url(../Pics/image.png);
     background-size: cover;
     background-position: bottom;
     background-repeat: no-repeat;
@@ -171,7 +171,7 @@ body {
     position: absolute;
     inset: 0;/* top:0; right:0; bottom:0; left:0 */
     pointer-events: none; /* allows clicks to go through to elements underneath */
-    background-image: url('Pics/front.png');
+    background-image: url('../Pics/front.png');
     background-repeat: no-repeat;
     background-position: bottom;
     background-size: cover; /* matches the game-container background sizing */
