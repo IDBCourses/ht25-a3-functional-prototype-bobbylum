@@ -1,638 +1,580 @@
-// ============================================
-// CANVAS AND CONTEXT
-// ============================================
-// These variables will hold the canvas element and drawing context
-let canvas; // The HTML canvas element the game is drawn
-let ctx; // The 2D context that draws shapes and images
+//------------------VARIABLES------------------
 
-// ============================================
-// GAME STATE VARIABLES
-// ============================================
-// These keep track of the current state of the game
+
+// ---Game Container---
+
+// DOM element that holds the game
+let gameContainer; // the container div for the game
+
+// ---Game state variables---
+
+// variables to keep track of the current state of the game
 let score = 0; // How many walls the player has successfully passed
 let lives = 3; // How many lives the player has left (3 at start of the game)
 let gameSpeed = 3; // How fast walls move across the screen (pixels per frame)
 let gameRunning = true; // Is the game currently running? (true) or over? (false)
 let gamePaused = false; // Is the game paused for long press? (true = paused, false = playing)
 
-// ============================================
-// WALL VARIABLES
-// ============================================
-// Variables related to the wall obstacles
-let walls = []; // An array that stores all current wall objects on screen
-let wallSpawnTimer = 0; // Counts frames to know when to spawn the next wall
-let wallSpawnInterval = 150; // How many frames to wait before spawning a new wall
-let colorIndex = 0; // Keeps track of which color to use for the next wall
-// Array of colors that walls can be - cycles through these
-const wallColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'];
-// The possible directions a wall can require 
-const directions = ['up', 'down', 'left', 'right'];
-// Special wall type that requires long press
+
+// ---Wall variables---
+
+// variables for the walls (obstacles)
+let walls = []; // array that stores all the current wall objects on the screen
+let wallSpawnTimer = 0; // counts the game frames to know when to spawn the next wall
+let wallSpawnInterval = 150; // how many frames to scroll until new wall appears
+let colorIndex = 0; // keeps track of which color to use for the next wall
+// array for the colors that walls can be - cycles through these
+const wallColors = [ '#ff0f7b', '#fe266d', '#fd3e60', '#fc5552', '#fa6c44', '#f98437', '#f89b29' ];
+// the possible directions a wall can require 
+const directions = [ 'up', 'down', 'left', 'right' ];
+// special wall for the long press
 const specialWallChance = 0.2; // 20% chance of spawning a special wall
 
-// ============================================
-// CAPYBARA VARIABLES
-// ============================================
-// Variables for the player character (capybara)
-const capybaraX = 150; // The fixed X position (horizontal) where capybara stays
-const capybaraY = 325; // The fixed Y position (vertical) where capybara stays
-let targetDirection = null; // The direction the player wants to change to
-let isLongPressing = false; // Is the player currently doing a long press?
 
-// Object to store all the capybara images for different directions
+// ---Capybara variables---
+
+// variables for the capybara
+const capybaraX = 150; // fixed X position (horizontal) where the capybara stays
+const capybaraY = 325; // fixed Y position (vertical) where the capybara stays
+let targetDirection = null; // direction the capybara wants to change to
+let isLongPressing = false; // is the player currently doing a long press?
+
+// object to store all the capybara images for the different directions
 let capyImages = {
-    up: null, // Will hold the "capi up.png" image
-    down: null, // Will hold the "capi down.png" image
-    left: null, // Will hold the "capi left.png" image
-    right: null, // Will hold the "capi right.png" image
-    special: null // Will hold the "capi special.png" image for long press success
+    up: 'url("./Pics/capi up.png")',
+    down: 'url("./Pics/capi down.png")',
+    left: 'url("./Pics/capi left.png")',
+    right: 'url("./Pics/capi right.png")',
+    special: 'url("./Pics/capi special.png")'
 };
 
-// The main capybara object that stores its position, size, and current state
+// the main capybara object that stores its position, size, and current state
 let capybara = {
-    x: capybaraX, // Current X position (horizontal)
-    y: capybaraY, // Current Y position (vertical)
-    width: 80, // Width of the capybara image in pixels
-    height: 80, // Height of the capybara image in pixels
-    state: 'right' // Current direction/orientation (starts facing right)
+    x: capybaraX, // x position (horizontal)
+    y: capybaraY, // y position (vertical)
+    width: 80, // width of the capybara image 
+    height: 80, // height of the capybara image 
+    state: 'right' // direction the capybara starts in
 };
 
-// ============================================
-// KEYBOARD SWIPE DETECTION
-// ============================================
-// This represents a British QWERTY keyboard layout in rows
-// Used to detect when player "swipes" across keys
+
+//------------------KEYS SETTINGS------------------
+
+// the game is based on a british QWERTY keyboard layout
+// detects when the player "swipes" across their letter keys
 const keyOrder = [
-    ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'], // Top row
-    ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'], // Middle row
-    ['z', 'x', 'c', 'v', 'b', 'n', 'm'] // Bottom row
+    [ 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p' ], // Top row
+    [ 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l' ], // Middle row
+    [ 'z', 'x', 'c', 'v', 'b', 'n', 'm' ] // Bottom row
 ];
-let keySequence = []; // Stores the last few keys pressed in order
-let lastKeyTime = 0; // Timestamp of when the last key was pressed
-const swipeTimeout = 300; // How many milliseconds before we reset the key sequence
+let keySequence = []; // array to store the last few keys pressed in order
+let lastKeyTime = 0; // timestamp of when the last key was pressed
+const swipeTimeout = 200; // how many milliseconds before the new arrow is decided
 
-// ============================================
-// LONG PRESS DETECTION
-// ============================================
-let longPressActive = false; // Is spacebar currently being held?
-let longPressStartTime = 0; // When did the long press start
-const longPressDuration = 1000; // How long to hold (in milliseconds) - 1 second
-let longPressCompleted = false; // Has the long press been completed?
+// ---Long press detection---
 
-// ============================================
-// WALL CLASS
-// ============================================
-// This is a "blueprint" for creating wall objects
-// Each wall is an obstacle the player needs to get past
+let longPressActive = false; // is the spacebar currently being held?
+let longPressStartTime = 0; // when did the long press start
+const longPressDuration = 1000; // how long to hold (in ms) -> 1 second
+let longPressCompleted = false; // has the long press been completed?
+
+
+//------------------WALL SETTINGS------------------
+
+// ---Wall class---
+
+// the class serves as a "blueprint" for creating the wall objects
+// each wall is an obstacle the capybara needs to get through
 class Wall {
-    // Constructor runs when you create a new wall: new Wall()
+    // Constructor runs when you create a new wall -> new Wall()
     constructor() {
-        this.x = canvas.width; // Start the wall at the right edge of the screen
-        this.width = 15; // How wide the wall is (thin vertical line)
-        this.height = canvas.height; // Make wall as tall as the game canvas
-        
-        // Decide if this is a special wall (requires a long press)
-        this.isSpecial = Math.random() < specialWallChance; // Random chance for special wall
-        
-        // Pick a color - special walls are gold/orange, normal walls are random colors
+        this.x = 800; // start the walls at the right edge of the game container (fixed width)
+        this.width = 15; // how thick the wall is in pixels
+        this.height = 700; // make the wall as tall as the game container (fixed height)
+
+        // decide if the next wall is going to be a special wall 
+        this.isSpecial = Math.random() < specialWallChance; // random chance for special wall
+
+        // pick a color - special walls are gold, normal walls follow the other set wall colors 
         if (this.isSpecial) {
-            this.color = '#FFD700'; // Gold color for special walls
+            this.color = '#9f8702'; // pick gold color for the special walls
         } else {
-            // Pick a color from the wallColors array 
-            this.color = wallColors[colorIndex % wallColors.length];
-            colorIndex++; // Increment so next wall gets a different color
+            // pick a color from the wallColors array 
+            this.color = wallColors[ colorIndex % wallColors.length ];
+            colorIndex++; // increment so the next wall gets a different color
         }
-        
-        // Randomly pick one of the directions (up, down, left, or right)
-        this.direction = directions[Math.floor(Math.random() * directions.length)];
-        this.passed = false; // Has the player successfully passed this wall?
-        this.checked = false; // Have we already checked collision for this wall?
+
+        // create DOM element for the wall
+        this.el = document.createElement('div');
+        this.el.className = this.isSpecial ? 'wall special-wall' : 'wall';
+        this.el.style.width = this.width + 'px';
+        this.el.style.height = this.height + 'px';
+        this.el.style.left = this.x + 'px';
+        this.el.style.top = '0px';
+        this.el.style.backgroundColor = this.color;
+        gameContainer.appendChild(this.el);
+
+        // randomly pick one of the directions for the arrow (up, down, left, or right) 
+        this.direction = directions[ Math.floor(Math.random() * directions.length) ];
+        this.passed = false; // has the player properly passed the wall?
+        this.checked = false; // has the game checked for collision for this wall?
     }
 
-    // Move the wall to the left each frame
+    // move the wall to the left each frame
     update() {
-        this.x -= gameSpeed; // Subtract gameSpeed from x position (moves left)
+        this.x -= gameSpeed; // subtract gameSpeed from x position (moves left)
+        this.el.style.left = this.x + 'px'; // update DOM position
     }
 
-    // Draw the wall on the canvas
-    draw() {
-        ctx.fillStyle = this.color; // Set the drawing color to this wall's color
-        // Draw a rectangle: x position, y position, width, height
-        ctx.fillRect(this.x, 0, this.width, this.height);
-        
-        // If this is a special wall, draw a visual indicator
-        if (this.isSpecial) {
-            ctx.fillStyle = '#FFF'; // White color for the star
-            ctx.font = 'bold 40px Arial'; // Font for the star symbol
-            // Draw a star symbol in the middle of the wall
-            ctx.fillText('⭐', this.x - 15, canvas.height / 2);
-        }
-    }
+    // --Wall collision check--
 
-    // Check if the capybara collides with this wall
-    // Takes the capybara object as a parameter
+    // this takes the capybara object as a parameter
     checkCollision(capy, playerIsLongPressing) {
-        // If already passed or checked, don't check again
+        // if the wall is already passed or checked, don't check it again
         if (this.passed || this.checked) return false;
-        
-        // Check if capybara and wall overlap horizontally
-        // capy.x < this.x + this.width means capy's left edge is left of wall's right edge
-        // capy.x + capy.width > this.x means capy's right edge is right of wall's left edge
+
+        // check if the capybara image and wall overlap horizontally
+        // capy.x < this.x + this.width -> capy's left edge is left of wall's right edge
+        // capy.x + capy.width > this.x -> capy's right edge is right of wall's left edge
         const overlapX = capy.x < this.x + this.width && capy.x + capy.width > this.x;
-        
-        // If they overlap horizontally and it isn't checked yet
+
+        // if they overlap horizontally and it hasn't been checked yet
         if (overlapX && !this.checked) {
-            this.checked = true; // Mark as checked so it's only checked once
-            
-            // SPECIAL WALL LOGIC - requires long press for special state
+            this.checked = true; // mark it as checked so it's only checked once
+
+            // -> special wall logic - requires the long press to get through the special state
             if (this.isSpecial) {
-                // Player must be long pressing or have special state to pass through special wall
+                // the player must be long pressing or already be in the special state to pass through the special wall
                 if (playerIsLongPressing || capy.state === 'special') {
-                    // SUCCESS! Player is long pressing or in special state
-                    this.passed = true; // Mark wall as successfully passed
-                    score += 2; // Special walls give 2 points instead of 1
-                    
-                    // Every 5 walls, make the game harder
+                    // succesful if the player is long pressing or in special state
+                    this.passed = true; // mark the wall as successfully passed
+                    score += 2; // special walls give 2 points instead of 1 for the normal walls
+
+                    // every 5 walls, make the game faster
                     if (score % 5 === 0) {
-                        gameSpeed += 0.5; // Walls move faster
-                        // Walls spawn more frequently (but not less than every 50 frames)
+                        gameSpeed += 0.5; // walls move faster
+                        // the walls spawn more frequently (but not less than every 50 framesn)
                         wallSpawnInterval = Math.max(50, wallSpawnInterval - 5);
                     }
-                    return false; // Return false = no collision, player passed through
+                    return false; // if it returns false => no collision, the player passed through
                 } else {
-                    // FAILURE! Not long pressing and not special - collision
-                    return true;
+                    // otherwise if the player is not long pressing and the wall is not special -> collision
+                    return true;// return true => collision happened
                 }
             }
-            // NORMAL WALL LOGIC - requires matching direction
+            // -> normal wall logic - requires the capybara to be matching directions with the current arrow
             else {
-                // Check if capybara's orientation matches what this wall requires
+                // check if the capybara's direction matches the arrow for this wall
                 if (capy.state === this.direction) {
-                    // SUCCESS! Capybara is in the correct position
-                    this.passed = true; // Mark wall as successfully passed
-                    score++; // Increase the player's score by 1
-                    
-                    // Every 5 walls, make the game harder
+                    // siuccessful if the capybara is in the correct position
+                    this.passed = true; // mark the wall as successfully passed
+                    score++; // increase the player's score by 1
+
+                    // every 5 walls, make the game harder
                     if (score % 5 === 0) {
-                        gameSpeed += 0.5; // Walls move faster
-                        // Walls spawn more frequently (but not less than every 50 frames)
+                        gameSpeed += 0.5; // walls move a bit faster
+                        // the walls spawn more frequently (but not less than every 50 frames)
                         wallSpawnInterval = Math.max(50, wallSpawnInterval - 5);
                     }
-                    return false; // Return false = no collision, player passed through
+                    return false; // if it returns false => no collision, the player passed through
                 } else {
-                    // FAILURE! Wrong orientation - this is a collision
-                    return true; // Return true = collision happened
+                    // Fotherwise if the capybara is in the Wrong orientation -> collision
+                    return true; // return true => collision happened
                 }
             }
         }
-        
-        return false; // No overlap or already checked = no collision
+
+        return false; // if there's no overlap or it's already been checked = no collision
     }
 }
 
-// ============================================
-// SETUP FUNCTION - Runs once at start
-// ============================================
-// This function initializes everything when the page loads
-function setup() {
-    // Get the canvas element from the HTML page by its ID
-    canvas = document.getElementById('game-canvas');
-    // Get the 2D drawing context - this is what lets us draw on the canvas
-    ctx = canvas.getContext('2d');
-    // Set the canvas width in pixels
-    canvas.width = 800;
-    // Set the canvas height in pixels
-    canvas.height = 700;
-    
-    // Load all the capybara images from the Pics folder
-    
-    // Create a new Image object for the "up" direction
-    capyImages.up = new Image();
-    // Set where to load the image from
-    capyImages.up.src = 'Pics/capi up.png';
-    
-    // Create a new Image object for the "down" direction
-    capyImages.down = new Image();
-    capyImages.down.src = 'Pics/capi down.png';
-    
-    // Create a new Image object for the "left" direction
-    capyImages.left = new Image();
-    capyImages.left.src = 'Pics/capi left.png';
-    
-    // Create a new Image object for the "right" direction
-    capyImages.right = new Image();
-    capyImages.right.src = 'Pics/capi right.png';
-    
-    // Create a new Image object for the "special" direction (for long press success)
-    capyImages.special = new Image();
-    capyImages.special.src = 'Pics/capi special.png';
-    
-    // Set up keyboard event listeners
-    // When any key is pressed down, call the handleKeyPress function
-    document.addEventListener('keydown', handleKeyPress);
-    // When any key is released, call the handleKeyRelease function
-    document.addEventListener('keyup', handleKeyRelease);
-    
-    // Wait for all images to load before starting the game
-    let imagesLoaded = 0; // Counter for how many images have loaded
-    const totalImages = 5; // the 5 images to load for the capybara
-    
-    // Loop through each image in the capyImages object
-    Object.values(capyImages).forEach(img => {
-        // When an image finishes loading, this function runs
-        img.onload = () => {
-            imagesLoaded++; // Increment the counter
-            // If all images are loaded, start the game
-            if (imagesLoaded === totalImages) {
-                loop(); // Call loop() to start the game
-            }
-        };
-        
-        // If an image fails to load, this function runs
-        img.onerror = () => {
-            // Log an error message to the console
-            console.error('Failed to load image:', img.src);
-            imagesLoaded++; // Still increment counter
-            // If all images attempted (success or fail), start anyway
-            if (imagesLoaded === totalImages) {
-                loop(); // Start game with fallback graphics
-            }
-        };
-    });
-}
 
-// ============================================
-// DRAW CAPYBARA
-// ============================================
-// This function draws the capybara on the screen
+
+//------------------DRAWING------------------
+
+//---Drawing the capybara---
+
+// function to draw the capybara on the screen
 function drawCapybara() {
-    // Get the correct image based on capybara's current state
-    const img = capyImages[capybara.state];
-    
-    // Check if image exists and has finished loading
-    if (img && img.complete) {
-        // Draw the image on the canvas
-        // Parameters: image, x position, y position, width, height
-        ctx.drawImage(img, capybara.x, capybara.y, capybara.width, capybara.height);
-    } else {
-        // If image not loaded, draw a brown rectangle as backup
-        ctx.fillStyle = '#8B6F47'; // Brown color
-        // Draw rectangle: x, y, width, height
-        ctx.fillRect(capybara.x, capybara.y, capybara.width, capybara.height);
-    }
+    // update the capybara DOM element based on the state
+    let capybaraEl = document.getElementById('capybara');
+    capybaraEl.style.left = capybara.x + 'px';
+    capybaraEl.style.top = capybara.y + 'px';
+    // set the background image based on the state
+    capybaraEl.style.backgroundImage = capyImages[ capybara.state ] || capyImages[ 'right' ];
 }
 
-// ============================================
-// DRAW UI (Score, Lives, Arrow)
-// ============================================
-// This function draws all the user interface elements
+// ---Drawing the UI (score, lives, arrow)---
+
+// function to draw all the user interface elements
 function drawUI() {
-    // Set text color to black
-    ctx.fillStyle = '#000';
-    // Set font: bold, 28 pixels, Arial font
-    ctx.font = 'bold 28px Arial';
-    
-    // Draw score in top left corner
-    ctx.fillText('⭐', 20, 40); // Star emoji at x=20, y=40
-    // Convert score number to text and draw it
-    ctx.fillText(score.toString(), 60, 40); // Score at x=60, y=40
-    
-    // Draw lives as hearts in top right corner
-    ctx.font = '28px Arial'; // Set font size
-    const heartSize = 35; // Space between each heart
-    const startX = canvas.width - 130; // Starting x position from right edge
-    
-    // Loop 3 times for 3 hearts
+    // update the score
+    document.getElementById('ui-score').textContent = '⭐ ' + score;
+
+    // update the lives
+    let livesText = '';
     for (let i = 0; i < 3; i++) {
-        // If this heart number is less than current lives
         if (i < lives) {
-            // Draw a filled pink heart
-            ctx.fillText('💗', startX + (i * heartSize), 40);
+            livesText += '💗'; // red heart for current lives
         } else {
-            // If life is lost, draw a black heart
-            ctx.fillStyle = '#666'; // Gray color
-            ctx.fillText('🖤', startX + (i * heartSize), 40);
-            ctx.fillStyle = '#000'; // Reset color back to black
+            livesText += '🖤'; // black heart for lost lives
         }
     }
-    
-    // If game is paused for long press, show progress bar
+    document.getElementById('ui-lives').textContent = livesText;
+
+    // update the arrows or special star indicator
+    let uiArrow = document.getElementById('ui-arrow');
+    if (walls.length > 0) {
+        const nextWall = walls[ 0 ];
+        // if the wall is special, show the star and "hold space" message
+        if (nextWall.isSpecial) {
+            uiArrow.innerHTML = '⭐<br><span style="font-size: 20px; text-align: center;">HOLD SPACE!</span>';
+        //if the wall is normal, show the arrow in the direction chosen
+        } else {
+            const arrows = { up: '↑', down: '↓', left: '←', right: '→' };
+            uiArrow.textContent = arrows[ nextWall.direction ] || '';
+        }
+    } else {
+        uiArrow.textContent = '';
+    }
+
+    // if the game is paused for the long press, show the progress bar
     if (gamePaused && longPressActive) {
         const now = Date.now();
         const pressDuration = now - longPressStartTime;
-        const progress = Math.min(pressDuration / longPressDuration, 1); // 0 to 1
-        
-        // Draw "HOLD SPACE!" text
-        ctx.font = 'bold 40px Arial';
-        ctx.fillStyle = '#000';
-        ctx.fillText('HOLD SPACE!', canvas.width / 2 - 120, canvas.height / 2 - 50);
-        
-        // Draw progress bar background
-        ctx.fillStyle = '#ddd';
-        ctx.fillRect(canvas.width / 2 - 150, canvas.height / 2, 300, 30);
-        
-        // Draw progress bar fill
-        ctx.fillStyle = '#FFD700'; // Gold color
-        ctx.fillRect(canvas.width / 2 - 150, canvas.height / 2, 300 * progress, 30);
-        
-        // Draw progress bar border
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(canvas.width / 2 - 150, canvas.height / 2, 300, 30);
-        
-        return; // Don't draw other UI elements while paused
-    }
-    
-    // Draw arrow indicator showing next required direction
-    // Only draw if there is at least one wall on screen
-    if (walls.length > 0) {
-        const nextWall = walls[0]; // Get the first (closest) wall
-        
-        // Check if the next wall is a special wall
-        if (nextWall.isSpecial) {
-            // For special walls, show a different indicator
-            ctx.font = 'bold 56px Arial'; // Bigger font
-            ctx.fillText('⭐', canvas.width / 2 - 25, 60); // Show star
-            // Add text below to explain
-            ctx.font = '20px Arial';
-            ctx.fillText('PRESS SPACE!', canvas.width / 2 - 65, 90);
-        } else {
-            // For normal walls, show direction arrow
-            ctx.font = 'bold 56px Arial'; // Bigger font for arrow
-            
-            let arrow = ''; // Variable to hold the arrow symbol
-            // Choose arrow based on wall's required direction
-            if (nextWall.direction === 'up') arrow = '↑';
-            else if (nextWall.direction === 'down') arrow = '↓';
-            else if (nextWall.direction === 'left') arrow = '←';
-            else if (nextWall.direction === 'right') arrow = '→'; // Right arrow
-            
-            // Draw arrow in center top of screen
-            ctx.fillText(arrow, canvas.width / 2 - 25, 60);
-        }
+        const progress = Math.min(pressDuration / longPressDuration, 1);
+        document.getElementById('progress-fill').style.width = (progress * 100) + '%';
+        document.getElementById('progress-bar').style.display = 'block';
+        document.getElementById('hold-text').style.display = 'block';
+    } else {
+        document.getElementById('progress-bar').style.display = 'none';
+        document.getElementById('hold-text').style.display = 'none';
     }
 }
 
-// ============================================
-// DETECT KEYBOARD SWIPES
-// ============================================
-// This function analyzes key presses to detect swipe patterns
-// Takes an array of keys as input
+//------------------KEYBOARD------------------
+
+//---Swipe detection---
+
+// function to analyse key presses to detect swipe patterns
+// takes the keys array as input
 function detectSwipe(keys) {
-    // Check for horizontal swipes (left-to-right for 'right', right-to-left for 'left')
+    // checks for horizontal swipes (left-to-right for 'right', right-to-left for 'left')
     for (let row of keyOrder) {
-        // Map each key to its position in the row, in press order
+        // map each key to its position in the row, in its press order
         let positions = keys.map(k => row.indexOf(k)).filter(p => p !== -1);
-        
+
         if (positions.length >= 2) {
-            // Require the keys to span at least 2 different positions in the row (similar to vertical requiring 2 rows)
+            // require for the keys to span at least 2 different positions in the row in case of a key skip 
             let span = Math.max(...positions) - Math.min(...positions);
             if (span >= 1) {
-                // Allow skipping letters: just check overall direction based on first and last positions
-                if (positions[positions.length - 1] > positions[0]) {
+                // allow skipping keys: just check if the overall direction based on the first and last key positions
+                if (positions[ positions.length - 1 ] > positions[ 0 ]) {
                     return 'right';
                 }
-                if (positions[positions.length - 1] < positions[0]) {
+                if (positions[ positions.length - 1 ] < positions[ 0 ]) {
                     return 'left';
                 }
             }
         }
     }
-    
-    // Check for vertical swipes (up or down)
+
+    // check for vertical swipes (up or down)
     if (keys.length >= 2) {
-        // Map each key to which row it's in
+        // map each key to which row it's in (top, middle or bottom)
         let rows = keys.map(k => {
             for (let i = 0; i < keyOrder.length; i++) {
-                if (keyOrder[i].includes(k)) return i; // Return row index
+                if (keyOrder[ i ].includes(k)) return i; // return the row index
             }
-            return -1; // Key not found
-        }).filter(r => r !== -1); // Remove keys not found
-        
-        // If keys span at least 2 rows
+            return -1; // key not found
+        }).filter(r => r !== -1); // remove the keys not found
+
+        // if the keys span at least 2 rows
         if (rows.length >= 2 && Math.max(...rows) - Math.min(...rows) >= 1) {
-            // If moving from higher row number to lower = up swipe
-            if (rows[rows.length - 1] < rows[0]) return 'up';
-            // If moving from lower row number to higher = down swipe
-            if (rows[rows.length - 1] > rows[0]) return 'down';
+            // if moving from higher row number to lower -> up swipe
+            if (rows[ rows.length - 1 ] < rows[ 0 ]) return 'up';
+            // if moving from lower row number to higher -> down swipe
+            if (rows[ rows.length - 1 ] > rows[ 0 ]) return 'down';
         }
     }
-    
-    return null; // No swipe pattern detected
+
+    return null; // no swipe pattern detected
 }
 
-// ============================================
-// HANDLE KEYBOARD INPUT
-// ============================================
-// This function is called every time a key is pressed
-// Parameter 'e' is the event object containing info about the key press
+// ---Handle keyboard input---
+
+// this function is called every time a key is pressed
+// 'e' parameter is the event object containing the info about the key press
 function handleKeyPress(e) {
-    // Prevent default spacebar behavior (page scrolling)
+    // prevent default spacebar behavior (page scrolling)
     if (e.key === ' ') {
         e.preventDefault();
     }
-    
-    const key = e.key.toLowerCase(); // Get the key pressed and make it lowercase
-    const now = Date.now(); // Get current time in milliseconds
-    
-    // ---- LONG PRESS DETECTION (SPACEBAR ONLY) ----
-    // Check if spacebar is pressed and not already active
+
+    const key = e.key.toLowerCase(); // get the key pressed and make it into lowercase
+    const now = Date.now(); // get the current time in milliseconds
+
+    // -Long press detection for the spacebar-
+
+    // check if the spacebar is pressed and not already active
     if (e.key === ' ' && !longPressActive && !gamePaused) {
-        longPressActive = true; // Mark that spacebar is being held
-        longPressStartTime = now; // Record when the press started
-        longPressCompleted = false; // Reset completion status
-        gamePaused = true; // PAUSE THE GAME
-        return; // Don't process other inputs while pausing
+        longPressActive = true; // mark that the spacebar is being held
+        longPressStartTime = now; // record when the press started
+        longPressCompleted = false; // reset the completion status
+        gamePaused = true; // pause the game
+        return; // don't process other inputs while pausing
     }
-    
-    // Don't process other keys if game is paused
+
+    // don't process other keys if the game is paused
     if (gamePaused) return;
-    
-    // ---- SWIPE DETECTION ----
-    // If too much time passed since last key, reset the sequence
+
+    // -Swipe detection-
+
+    // if too much time passed since the last key press, reset the sequence
     if (now - lastKeyTime > swipeTimeout) {
-        keySequence = []; // Clear the array
+        keySequence = []; // clear the array
     }
-    
-    keySequence.push(key); // Add the new key to the sequence
-    lastKeyTime = now; // Update the last key time
-    
-    // Keep only the last 5 keys (remove oldest if more than 5)
-    if (keySequence.length > 5) keySequence.shift(); // shift() removes first item
-    
-    // Try to detect a swipe pattern from the key sequence
+
+    keySequence.push(key); // add the new key to the sequence
+    lastKeyTime = now; // update the last key time
+
+    // keep only the last 5 keys (remove the oldest if > 5)
+    if (keySequence.length > 5) keySequence.shift(); // shift() removes the first item
+
+    // try to detect a swipe pattern from the key sequence
     const swipe = detectSwipe(keySequence);
-    if (swipe) { // If a swipe was detected
-        targetDirection = swipe; // Set the target direction
-        keySequence = []; // Clear the sequence
+    if (swipe) { // if a swipe was detected
+        targetDirection = swipe; // set the target direction
+        keySequence = []; // clear the sequence
     }
-    
-    // Also allow arrow keys for easier testing/playing
+
+    /* TEST for capybara image moving => allow arrow keys
     if (e.key === 'ArrowUp') targetDirection = 'up';
     if (e.key === 'ArrowDown') targetDirection = 'down';
     if (e.key === 'ArrowLeft') targetDirection = 'left';
-    if (e.key === 'ArrowRight') targetDirection = 'right';
+    if (e.key === 'ArrowRight') targetDirection = 'right';*/
 }
 
-// ============================================
-// HANDLE KEYBOARD RELEASE
-// ============================================
-// This function is called when a key is released (let go)
+// ---Handle keyboard release---
+
+// function is called when a key is released
 function handleKeyRelease(e) {
-    // If spacebar is released
+    // if the spacebar is released
     if (e.key === ' ' && longPressActive) {
-        // Check if the long press was held long enough
+        // check if the long press was held long enough
         const now = Date.now();
         const pressDuration = now - longPressStartTime;
-        
-        // If not held long enough, fail the long press
+
+        // if it's not held long enough, fail the long press
         if (pressDuration < longPressDuration) {
-            gamePaused = false; // Unpause game
-            longPressActive = false; // Reset long press
-            longPressCompleted = false; // Mark as not completed
-            isLongPressing = false; // Player failed
-            // Player failed to hold long enough - will collide with special wall
+            gamePaused = false; // unpause game
+            longPressActive = false; // reset the long press
+            longPressCompleted = false; // mark as not completed
+            isLongPressing = false; // player isn't long pressing
+            // player has failed to hold long enough - will collide with special wall if not pressed long enough in time again
         }
     }
 }
 
-// ============================================
-// CHECK FOR LONG PRESS
-// ============================================
-// This function checks if spacebar has been held long enough
-// Called every frame in the game loop
+// ---Check for long press---
+
+// function checks if the spacebar has been held long enough
+// called every frame in the game loop
 function checkLongPress() {
-    // If spacebar is being held down and game is paused
+    // if the spacebar is being held down and the game is paused
     if (longPressActive && gamePaused) {
-        const now = Date.now(); // Get current time
-        const pressDuration = now - longPressStartTime; // How long has key been held?
-        
-        // If held long enough, complete the long press
+        const now = Date.now(); // get current time
+        const pressDuration = now - longPressStartTime; // how long has space been held?
+
+        // if it's held long enough, complete the long press
         if (pressDuration >= longPressDuration && !longPressCompleted) {
-            longPressCompleted = true; // Mark as completed
-            isLongPressing = true; // Player successfully long pressed
-            gamePaused = false; // UNPAUSE THE GAME
-            longPressActive = false; // Reset the active state
-            capybara.state = 'special'; // Change to special image for visual feedback
+            longPressCompleted = true; // mark as completed
+            isLongPressing = true; // player successfully long pressed
+            gamePaused = false; // unpause the game
+            longPressActive = false; // reset the active state
+            capybara.state = 'special'; // change to the capi special image for visual feedback that it worked
         }
     }
 }
 
-// ============================================
-// UPDATE CAPYBARA STATE
-// ============================================
-// This function updates the capybara's direction/orientation
+
+//------------------CAPYBARA IMAGE UPDATE------------------
+
+// function updates the capybara's direction
 function updateCapybara() {
-    // If player has chosen a new direction
+    // if the player has chosen a new direction
     if (targetDirection) {
-        capybara.state = targetDirection; // Change capybara's state (resets from 'special' if needed)
-        
-        // Keep capybara in the same spot regardless of state
-        capybara.x = capybaraX; // Reset to fixed X position
-        capybara.y = capybaraY; // Reset to fixed Y position
-        targetDirection = null; // Clear the target after updating
+        capybara.state = targetDirection; // change the capybara's state (resets from 'special state' if needed)
+
+        // keep the capybara in the same spot no matter the state
+        capybara.x = capybaraX; // reset to fixed X position
+        capybara.y = capybaraY; // reset to fixed Y position
+        targetDirection = null; // clear the target after updating
     }
 }
 
-// ============================================
-// MAIN GAME LOOP - Runs every frame
-// ============================================
-// This is the heart of the game - it runs continuously
+
+//------------------SETUP AND LOOP------------------
+
+function setup() {
+    // get the game container element from the HTML page
+    gameContainer = document.getElementById('game-container');
+
+    // create the capybara DOM element
+    let capybaraEl = document.createElement('div');
+    capybaraEl.id = 'capybara';
+    capybaraEl.style.left = capybara.x + 'px';
+    capybaraEl.style.top = capybara.y + 'px';
+    capybaraEl.style.backgroundImage = capyImages[ 'right' ]; // Start with right image
+    gameContainer.appendChild(capybaraEl);
+
+    // create the UI elements
+    let uiScore = document.createElement('div');
+    uiScore.id = 'ui-score';
+    uiScore.textContent = '⭐ 0';
+    gameContainer.appendChild(uiScore);
+
+    let uiLives = document.createElement('div');
+    uiLives.id = 'ui-lives';
+    uiLives.textContent = '💗💗💗';
+    gameContainer.appendChild(uiLives);
+
+    let uiArrow = document.createElement('div');
+    uiArrow.id = 'ui-arrow';
+    gameContainer.appendChild(uiArrow);
+
+    // create the progress bar elements
+    let progressBar = document.createElement('div');
+    progressBar.id = 'progress-bar';
+    let progressFill = document.createElement('div');
+    progressFill.id = 'progress-fill';
+    progressBar.appendChild(progressFill);
+    gameContainer.appendChild(progressBar);
+
+    let holdText = document.createElement('div');
+    holdText.id = 'hold-text';
+    holdText.textContent = 'HOLD SPACE!';
+    gameContainer.appendChild(holdText);
+
+    // set up the keyboard event listeners
+    // when any key is pressed down, call the handleKeyPress function
+    document.addEventListener('keydown', handleKeyPress);
+
+    // when any key is released, call the handleKeyRelease function
+    document.addEventListener('keyup', handleKeyRelease);
+
+    // load the capybara images
+    let imagesLoaded = 0;
+    const totalImages = 5;
+    const imageKeys = [ 'up', 'down', 'left', 'right', 'special' ];
+
+    imageKeys.forEach(key => {
+        let img = new Image();
+        img.src = capyImages[ key ].replace('url(', '').replace(')', ''); // extract the path
+        img.onload = () => {
+            imagesLoaded++;
+            if (imagesLoaded === totalImages) {
+                loop(); // start the game when all images are successfully loaded
+            }
+        };
+        img.onerror = () => {
+            console.error('Failed to load image:', img.src);
+            imagesLoaded++;
+            if (imagesLoaded === totalImages) {
+                loop(); // start anyway even with fallbacks -> use background color for image to check if loaded if capybara doesn't appear
+            }
+        };
+    });
+}
+
+// runs throughout the game continuously
 function loop() {
-    // If game is over, stop the loop
+    // if game is over, stop the loop
     if (!gameRunning) return;
-    
-    // Clear the entire canvas (erase previous frame)
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw background color (semi-transparent green)
-    ctx.fillStyle = 'rgba(212, 232, 212, 0.3)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Check for long press progress
+
+    // check for long press progress
     checkLongPress();
-    
-    // If game is paused, don't update game logic, just draw UI
+
+    // if the game is paused, don't update game logic, just draw UI
     if (gamePaused) {
-        // Still draw walls and capybara (frozen)
-        for (let i = 0; i < walls.length; i++) {
-            walls[i].draw();
-        }
-        drawCapybara();
-        drawUI(); // This will show the progress bar
+        // update UI for paused state
+        drawUI();
         requestAnimationFrame(loop);
         return;
     }
-    
-    // Wall spawning logic
-    wallSpawnTimer++; // Increment the timer each frame
-    // If enough frames have passed, spawn a new wall
+
+    // --Wall spawning logic--
+
+    wallSpawnTimer++; // increment the timer each frame
+    // if enough frames have passed, spawn a new wall
     if (wallSpawnTimer >= wallSpawnInterval) {
-        walls.push(new Wall()); // Create new wall and add to array
-        wallSpawnTimer = 0; // Reset the timer
+        walls.push(new Wall()); // create new wall and add it to the array
+        wallSpawnTimer = 0; // reset the spawn timer
     }
-    
-    // Update and draw all walls
-    // Loop backwards so we can safely remove walls
+
+    // --Update and draw all walls--
+
+    // Loop backwards so wall can be safely removed
     for (let i = walls.length - 1; i >= 0; i--) {
-        walls[i].update(); // Move wall left
-        walls[i].draw(); // Draw wall on canvas
-        
-        // Check if this wall collides with capybara
-        // Pass the long press state to the collision check
-        if (walls[i].checkCollision(capybara, isLongPressing)) {
-            lives--; // Player loses a life
-            walls.splice(i, 1); // Remove this wall from array
-            isLongPressing = false; // Reset long press state after collision
-            
-            // Check if player has no lives left
+        walls[ i ].update(); // move the wall left
+
+        // check if the wall collides with the capybara
+        // pass the long press state to the collision check
+        if (walls[ i ].checkCollision(capybara, isLongPressing)) {
+            lives--; // player loses a life on collision
+            gameContainer.removeChild(walls[ i ].el); // remove the wall element
+            walls.splice(i, 1); // remove from array
+            isLongPressing = false; // reset long press state after collision
+
+            //--Game over--
+
+            // check if the player has any lives left
             if (lives <= 0) {
-                gameRunning = false; // Stop the game
-                // Update game over screen with final score
+                gameRunning = false; // stop the game
+                // update the game over screen with final score
                 document.getElementById('final-score').textContent = score;
-                // Show the game over screen
+                // show the game over screen
                 document.getElementById('game-over').style.display = 'block';
             }
-        } 
-        // Remove walls that have moved off the left side of screen
-        else if (walls[i].x + walls[i].width < 0) {
-            walls.splice(i, 1); // Remove from array
+        }
+        // remove walls that have moved off the left side of screen to prevent crashing
+        else if (walls[ i ].x + walls[ i ].width < 0) {
+            gameContainer.removeChild(walls[ i ].el); // remove wall element
+            walls.splice(i, 1); // remove from the array
         }
     }
-    
-    // After successfully passing a special wall, reset long press
+
+    // after successfully passing a special wall, reset the long press
     if (isLongPressing) {
-        // Check if the closest wall (that we'd be colliding with) has been passed
+        // check if the closest wall (that we'd be colliding with) has been passed
         let shouldResetLongPress = true;
         for (let wall of walls) {
-            // If there's a special wall close to the capybara that hasn't been passed
+            // if there's a special wall close to the capybara that hasn't been passed
             if (wall.isSpecial && !wall.passed && wall.x < capybara.x + capybara.width + 50) {
                 shouldResetLongPress = false;
                 break;
             }
         }
-        // If no close special walls, reset the long press
+        // if there's no special walls close, reset the long press
         if (shouldResetLongPress) {
             isLongPressing = false;
             longPressCompleted = false;
         }
     }
-    
-    // Update the capybara based on player input
+
+    // call to update the capybara based on player input
     updateCapybara();
-    // Draw the capybara on screen
+    // call to draw the capybara on screen
     drawCapybara();
-    
-    // Draw all UI elements (score, lives, arrows)
+
+    // call to draw all UI elements (score, lives, arrows)
     drawUI();
-    
-    // Call loop again for the next frame
-    // requestAnimationFrame makes it run at ~60 frames per second
+
+    // call loop again for the next frame
+    // requestAnimationFrame makes it run at approx. 60 frames per second
     requestAnimationFrame(loop);
 }
 
-// ============================================
-// START GAME WHEN PAGE LOADS
-// ============================================
-// When the page finishes loading, call setup()
+
+// when the page finishes loading, call setup()
 window.addEventListener('load', setup);
