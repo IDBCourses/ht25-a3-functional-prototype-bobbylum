@@ -385,18 +385,13 @@ function detectSwipe(keys) {
         let positions = keys.map(k => row.indexOf(k)).filter(p => p !== -1);
         
         if (positions.length >= 2) {
-            // Check if positions are sequential (no large gaps)
-            let isSequential = true;
-            for (let i = 1; i < positions.length; i++) {
-                if (Math.abs(positions[i] - positions[i-1]) > 2) isSequential = false;
-            }
-            
-            if (isSequential) {
-                // If positions increase (left-to-right press), it's a right swipe
+            // Require the keys to span at least 2 different positions in the row (similar to vertical requiring 2 rows)
+            let span = Math.max(...positions) - Math.min(...positions);
+            if (span >= 1) {
+                // Allow skipping letters: just check overall direction based on first and last positions
                 if (positions[positions.length - 1] > positions[0]) {
                     return 'right';
                 }
-                // If positions decrease (right-to-left press), it's a left swipe
                 if (positions[positions.length - 1] < positions[0]) {
                     return 'left';
                 }
